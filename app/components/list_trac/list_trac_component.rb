@@ -10,6 +10,7 @@ class ListTrac::ListTracComponent < ViewComponent::Base
     @library_mode ||= params[:library_mode]
     @token = token # TODO: Remove once API is working for us
     @listings = @library_mode ? demo_listings : agent_listings
+    @heading = "Online Activity"
   end
   # rubocop:enable Metrics/MethodLength
 

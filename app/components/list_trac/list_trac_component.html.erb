@@ -1,12 +1,12 @@
 <!-- Token: <%= @token %> -->
 <link rel="stylesheet" type="text/css" href="/assets/list_trac/style.css">
 
-<% unless current_page?(component_named_expanded_path('list_trac')) %>
+<% if current_page?(component_named_default_path('list_trac')) %>
 <%# Inline Widget %>
 <div class="list_trac inline-widget relative flex flex-col border text-primary shadow-3 rounded-lg overflow-hidden m-8">
   <header class="flex items-center min-h-48 bg-white border-b px-16 select-none">
     <p id="heading" role="heading" aria-level="2" class="my-0 subtitle3">
-      Online Activity
+      <%= @heading %>
     </p>
   </header>
   <div class="flex-1 p-16 bg-gray">
@@ -101,60 +101,49 @@ window.addEventListener("message", (e) => {
 });
 </script>
 
-<% else %>
+<% elsif current_page?(component_named_expanded_path('list_trac')) %>
 
 <%# Expanded Widget %>
 <div class="list_trac w-screen h-screen">
   <mx-modal large close-on-escape="false">
-    <div slot="header-left">Online Activity</div>
+    <div slot="header-left"><%= @heading %></div>
     <div slot="header-right" class="flex items-center space-x-16">
-      <mx-search flat dense placeholder="Search"></mx-search>
+      <mx-icon-button href="<%= component_named_settings_path %>" icon="text-link mds-gear"></mx-icon-button>
       <mx-button class="close-button" btn-type="text">Close</mx-button>
     </div>
     <mx-table>
       <div>
         <mx-table-row>
           <mx-table-cell>123 Main St</mx-table-cell>
-          <mx-table-cell>Pending</mx-table-cell>
           <mx-table-cell>100</mx-table-cell>
           <mx-table-cell>10</mx-table-cell>
-          <mx-table-cell>
-            <mx-button btn-type="text" icon="icon icon-visibility">Preview</mx-button>
-            <mx-button btn-type="text" icon="icon icon-event">Schedule Report</mx-button>
-          </mx-table-cell>
+          <mx-table-cell></mx-table-cell>
         </mx-table-row>
         <mx-table-row>
           <mx-table-cell>456 Main St</mx-table-cell>
-          <mx-table-cell>Pending</mx-table-cell>
           <mx-table-cell>200</mx-table-cell>
           <mx-table-cell>20</mx-table-cell>
-          <mx-table-cell>
-            <mx-button btn-type="text" icon="icon icon-visibility">Preview</mx-button>
-            <mx-button btn-type="text" icon="icon icon-event">Schedule Report</mx-button>
-          </mx-table-cell>
+          <mx-table-cell></mx-table-cell>
         </mx-table-row>
         <mx-table-row>
           <mx-table-cell>789 Main St</mx-table-cell>
-          <mx-table-cell>Pending</mx-table-cell>
           <mx-table-cell>300</mx-table-cell>
           <mx-table-cell>30</mx-table-cell>
-          <mx-table-cell>
-            <mx-button btn-type="text" icon="icon icon-visibility">Preview</mx-button>
-            <mx-button btn-type="text" icon="icon icon-event">Schedule Report</mx-button>
-          </mx-table-cell>
+          <mx-table-cell></mx-table-cell>
         </mx-table-row>
         <mx-table-row>
           <mx-table-cell>101 Main St</mx-table-cell>
-          <mx-table-cell>Pending</mx-table-cell>
           <mx-table-cell>400</mx-table-cell>
           <mx-table-cell>40</mx-table-cell>
-          <mx-table-cell>
-            <mx-button btn-type="text" icon="icon icon-visibility">Preview</mx-button>
-            <mx-button btn-type="text" icon="icon icon-event">Schedule Report</mx-button>
-          </mx-table-cell>
+          <mx-table-cell></mx-table-cell>
         </mx-table-row>
       </div>
     </mx-table>
+    <div slot="footer-left">
+      <a href="https://stellar.sso.listtrac.com/Account/SingleSignOn">
+        <img id="logo" src="/assets/list_trac/logo.png" width="105" height="48" alt="ListTrac" />
+      </a>
+    </div>
   </mx-modal>
 </div>
 
@@ -168,7 +157,11 @@ const sendCloseMessage = () => {
   );
 }
 const modal = root.querySelector("mx-modal");
-setTimeout(() => modal.isOpen = true, 200);
+const observer = new MutationObserver(mutations => {
+  requestAnimationFrame(() => modal.isOpen = true);
+  observer.disconnect();
+})
+observer.observe(root, { subtree: true, childList: true });
 modal.addEventListener("mxClose", sendCloseMessage);
 /* We have to recreate the close button since we are overriding the default content of the 
 /* header-right slot. */
@@ -183,11 +176,69 @@ document.addEventListener("keydown", (e) => {
 const table = root.querySelector("mx-table");
 table.columns = [
   { heading: "Listing" },
-  { heading: "Status" },
-  { heading: "Views" },
-  { heading: "Leads" },
-  { isActionColumn: true, align: 'right', cellClass: 'sm:p-0' },
+  { heading: "Views", align: "right" },
+  { heading: "Leads", align: "right" },
+  { isActionColumn: true } // Design has a blank column here
 ];
 
+</script>
+
+<% elsif current_page?(component_named_settings_path('list_trac')) %>
+
+<%# Settings %>
+<div class="list_trac w-screen h-screen">
+  <mx-modal close-on-escape="false">
+    <div slot="header-left"><%= @heading %> | Settings</div>
+    <div slot="header-right"></div>
+    <div class="settings-inner">
+      <mx-select label="Default display" class="mb-24">
+        <option>Latest activity</option>
+        <option>Views: most to least</option>
+        <option>Views: least to most</option>
+        <option>Leads: most to least</option>
+        <option>Leads: least to most</option>
+      </mx-select>
+      <mx-select label="Time frame">
+        <option>Last 14 days</option>
+        <option>Last 30 days</option>
+        <option>Last 90 days</option>
+        <option>Last 180 days</option>
+        <option>Last year</option>
+        <option>All-time</option>
+      </mx-select>
+    </div>
+    <div slot="footer-left">
+      <a href="https://stellar.sso.listtrac.com/Account/SingleSignOn">
+        <img id="logo" src="/assets/list_trac/logo.png" width="105" height="48" alt="ListTrac" />
+      </a>
+    </div>
+    <div slot="footer-right">
+      <mx-button btn-type="outlined">Cancel</mx-button> 
+      <mx-button>Save</mx-button>
+    </div>
+  </mx-modal>
+</div>
+
+<%# Settings Script %>
+<script type="module">
+const root = document.querySelector('.list_trac');
+const sendCloseMessage = () => {
+  window.parent.postMessage(
+    { type: "CLOSE_EXPANDED", payload: {} },
+    "*"
+  );
+}
+const modal = root.querySelector("mx-modal");
+const observer = new MutationObserver(mutations => {
+  requestAnimationFrame(() => modal.isOpen = true);
+  observer.disconnect();
+})
+observer.observe(root, { subtree: true, childList: true });
+modal.addEventListener("mxClose", sendCloseMessage);
+
+/* The close-on-escape behavior provided by mx-modal does not work in an iframe. */
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") sendCloseMessage();
+});
 </script>
 <% end %>
